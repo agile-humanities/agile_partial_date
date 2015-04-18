@@ -11,7 +11,6 @@
  * @see
  * http://framework.zend.com/code/filedetails.php?repname=Zend+Framework&path=%2Ftrunk%2Flibrary%2FZend%2FDate%2FDateObject.php&peg=22321
  */
-
 /**
  * TODO, account for that fact that there is no year 0 in the Gregorian calendar
  *  AD 1 = year 1, 1 BC = year 0, 2 BC = year −1,
@@ -239,7 +238,7 @@ function partial_date_field_is_empty($item, $field) {
   }
 
   return !((isset($item['txt_short']) && strlen($item['txt_short'])) ||
-         (isset($item['txt_long']) && strlen($item['txt_long'])));
+      (isset($item['txt_long']) && strlen($item['txt_long'])));
 }
 
 ################################################################################
@@ -366,7 +365,8 @@ function partial_date_field_widget_reduce_date_components($item, $is_start = TRU
       }
     }
     else {
-      $components[$key] = isset($item[$key]) && strlen($item[$key]) ? $item[$key] : NULL;;
+      $components[$key] = isset($item[$key]) && strlen($item[$key]) ? $item[$key] : NULL;
+      ;
     }
   }
   // No easy way to test a 0 value :{
@@ -497,7 +497,7 @@ function partial_date_field_formatter_view($object_type, $object, $field, $insta
       // The additonal "Approximate only" checkbox.
       $display['settings']['is_approximate'] = FALSE;
       if (!empty($widget_settings['theme_overrides']['check_approximate'])) {
-        $display['settings']['is_approximate']  = !empty($item['check_approximate']);
+        $display['settings']['is_approximate'] = !empty($item['check_approximate']);
       }
       if (isset($item['from'])) {
         $from = partial_date_field_widget_reduce_date_components($item['from'], TRUE);
@@ -766,7 +766,6 @@ function partial_date_theme() {
   );
 }
 
-
 /**
  * The theme wrapper for a single date component.
  * todo: floating support.
@@ -781,9 +780,7 @@ function theme_partial_date_range($variables) {
   $from = $variables['from'];
   $settings = $variables['settings'];
   $separator = '';
-  if (!empty($settings['component_settings'])
-    && !empty($settings['component_settings']['separator'])
-    && !empty($settings['component_settings']['separator']['range'])) {
+  if (!empty($settings['component_settings']) && !empty($settings['component_settings']['separator']) && !empty($settings['component_settings']['separator']['range'])) {
     $separator = $settings['component_settings']['separator']['range'];
   }
   if (!strlen($separator)) {
@@ -1061,13 +1058,11 @@ function partial_date_timezone_handling_correlation($timezone = '', $tz_handling
         case '--site--':
           $timezone = partial_date_timezone_handling_correlation($timezone, trim($timezone, '-'));
           break;
-
       }
       return $timezone;
 
     default:
       return '';
-
   }
 }
 
@@ -1285,14 +1280,14 @@ function partial_date_is_leap_year($year) {
     return FALSE;
   }
 
-   if ($year < 1582) {
+  if ($year < 1582) {
     // pre Gregorio XIII - 1582
     return $year % 4 == 0;
-   }
-   else {
-     // post Gregorio XIII - 1582
-     return (($year % 4 == 0) && ($year % 100 != 0)) || ($year % 400 == 0);
-   }
+  }
+  else {
+    // post Gregorio XIII - 1582
+    return (($year % 4 == 0) && ($year % 100 != 0)) || ($year % 400 == 0);
+  }
 }
 
 /**
@@ -1349,28 +1344,27 @@ function partial_date_mktime(array $components) {
     }
   }
 
-        // Get approx. offset
+  // Get approx. offset
 # Error in float pre 1900 probably makes this pointless
 #        if ($gmt !== true) {
 #          $tz = new DateTimeZone($timezone);
 #          $second += $tz->getOffset(date_create('2000-01-01 00:00 GMT'));
 #        }
-
   // date to integer
-  $day   = intval($day);
+  $day = intval($day);
   $month = intval($month);
-  $year  = intval($year);
+  $year = intval($year);
   $_monthTable = partial_date_month_matrix();
 
   if ($month > 12) {
     $overlap = floor($month / 12);
-    $year   += $overlap;
-    $month  -= $overlap * 12;
+    $year += $overlap;
+    $month -= $overlap * 12;
   }
   else {
     $overlap = ceil((1 - $month) / 12);
-    $year   -= $overlap;
-    $month  += $overlap * 12;
+    $year -= $overlap;
+    $month += $overlap * 12;
   }
 
   $date = 0;
@@ -1383,7 +1377,7 @@ function partial_date_mktime(array $components) {
     for ($mcount = 0; $mcount < ($month - 1); $mcount++) {
       $date += $_monthTable[$mcount];
       if (($leapyear === true) and ($mcount == 1)) {
-          $date++;
+        $date++;
       }
     }
     $date += $day - 1;
@@ -1398,14 +1392,14 @@ function partial_date_mktime(array $components) {
       if ($count < $year) {
         $date += 365;
         if ($leapyear === true) {
-            $date++;
+          $date++;
         }
       }
       else {
         for ($mcount = 0; $mcount < ($month - 1); $mcount++) {
           $date += $_monthTable[$mcount];
           if (($leapyear === true) and ($mcount == 1)) {
-              $date++;
+            $date++;
           }
         }
       }
@@ -1441,15 +1435,14 @@ function partial_date_mktime(array $components) {
 
     // gregorian correction for 5.Oct.1582
     if ($date < -12220185600) {
-        $date += 864000;
+      $date += 864000;
     }
     elseif ($date < -12219321600) {
-        $date  = -12219321600;
+      $date = -12219321600;
     }
   }
   return $date;
 }
-
 
 /**
  * Function used by uasort to sort structured arrays by weight.
@@ -1482,8 +1475,8 @@ function _partial_date_component_separator($a, $b, $separators = array()) {
     $key = 'datetime';
   }
   return isset($separators[$key]) ? $separators[$key] : FALSE;
-
 }
+
 /**
  * Helper function to determine the component type for inserting the component
  * separator.
@@ -1509,7 +1502,6 @@ function _partial_date_component_type($key) {
   }
 }
 
-
 function _partial_date_render_component($key, $item, $field, $format) {
   switch ($field) {
     case 'none':
@@ -1532,8 +1524,7 @@ function partial_date_format($item, array $settings = array()) {
   $components = array();
   uasort($settings['components'], 'partial_date_sort');
   // Skip unless we have a 12 hour format, then enforce it.
-  if (isset($settings['components']['hour'])
-      && ($settings['components']['hour'] == 'h' || $settings['components']['hour'] == 'g')) {
+  if (isset($settings['components']['hour']) && ($settings['components']['hour'] == 'h' || $settings['components']['hour'] == 'g')) {
     if (empty($settings['meridiem'])) {
       $settings['meridiem'] = 'a';
     }
@@ -1585,7 +1576,7 @@ function partial_date_format($item, array $settings = array()) {
             $markup = partial_date_format_component($value, $component['format'], $item, $settings);
             break;
           }
-          // Fall through
+        // Fall through
 
         case 'estimate_label':
           $markup = $item[$type . '_estimate_label'];
@@ -1608,7 +1599,6 @@ function partial_date_format($item, array $settings = array()) {
         case 'estimate_component':
           $markup = partial_date_format_component($item[$type . '_estimate_value'], $component['format'], $item, $settings);
           break;
-
       }
 
       if (!strlen($markup)) {
@@ -1636,7 +1626,6 @@ function partial_date_format($item, array $settings = array()) {
       $components[] = $component['value'];
       $last_type = $type;
     }
-
   }
   return implode('', $components);
 }
@@ -1682,7 +1671,7 @@ function partial_date_format_component($value, $format, &$date, $additional = ar
   switch ($format) {
     case 'y-ce':
     case 'y':
-      return (strlen($value) > 2 ?  substr($value, - 2) : $value) . $suffix;
+      return (strlen($value) > 2 ? substr($value, - 2) : $value) . $suffix;
 
     case 'F':
       return partial_date_month_names($value) . $suffix;
@@ -1737,9 +1726,11 @@ function partial_date_format_component($value, $format, &$date, $additional = ar
       try {
         $tz = new DateTimeZone($value);
         $transitions = $tz->getTransitions();
-        return $transitions[0]['abbr']  . $suffix;
+        return $transitions[0]['abbr'] . $suffix;
       }
-      catch (Exception $e) {}
+      catch (Exception $e) {
+
+      }
       return '';
 
 
@@ -1796,10 +1787,10 @@ function partial_date_day_of_week($year, $month, $day) {
   }
 
   $day = floor((13 * $month - 1) / 5) +
-         $day + ($year % 100) +
-         floor(($year % 100) / 4) +
-         floor(($year / 100) / 4) - 2 *
-         floor($year / 100) + 77 + $greg_correction;
+      $day + ($year % 100) +
+      floor(($year % 100) / 4) +
+      floor(($year / 100) / 4) - 2 *
+      floor($year / 100) + 77 + $greg_correction;
 
   return $day - 7 * floor($day / 7);
 }
@@ -1843,4 +1834,266 @@ function hook_feeds_plugins() {
     ),
   );
   return $info;
+}
+
+function partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  $field_info = field_info_instances($entity_type, $bundle_name);
+  foreach ($field_info as $key => $value) {
+    if ($value['widget']['module'] == 'partial_date') {
+
+    }
+  }
+
+  if ($entity_type == 'node') {
+    $targets['pd_year'] = array(
+      'name' => t('Partial-Date-Field-Name: Year'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_year_start'] = array(
+      'name' => t('Partial-Date-Field-Name: Year: Start'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_year_end'] = array(
+      'name' => t('Partial-Date-Field-Name: Year: End'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_month'] = array(
+      'name' => t('Partial-Date-Field-Name: Month'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_month_start'] = array(
+      'name' => t('Partial-Date-Field-Name: Month: Start'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_month_end'] = array(
+      'name' => t('Partial-Date-Field-Name: Month: End'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_day'] = array(
+      'name' => t('Partial-Date-Field-Name: Day'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_day_start'] = array(
+      'name' => t('Partial-Date-Field-Name: Day: Start'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_day_end'] = array(
+      'name' => t('Partial-Date-Field-Name: Day: End'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+
+    $targets['pd_hour'] = array(
+      'name' => t('Partial-Date-Field-Name: Hour'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_hour_start'] = array(
+      'name' => t('Partial-Date-Field-Name: Hour: Start'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_hour_end'] = array(
+      'name' => t('Partial-Date-Field-Name: Hour: End'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_minute'] = array(
+      'name' => t('Partial-Date-Field-Name: Minute'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_second'] = array(
+      'name' => t('Partial-Date-Field-Name: Second'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_timezone'] = array(
+      'name' => t('Partial-Date-Field-Name: Timezone'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_estimate_year'] = array(
+      'name' => t('Partial-Date-Field-Name: Estimate Year'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_estimate_month'] = array(
+      'name' => t('Partial-Date-Field-Name: Estimate Month'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_estimate_day'] = array(
+      'name' => t('Partial-Date-Field-Name: Estimate Day'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_hour_estimate'] = array(
+      'name' => t('Partial-Date-Field-Name: Hour Estimate'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_minute_estimate'] = array(
+      'name' => t('Partial-Date-Field-Name: Minute Estimate'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_second_estimate'] = array(
+      'name' => t('Partial-Date-Field-Name: Second Estimate'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_short_date_text'] = array(
+      'name' => t('Partial-Date-Field-Name: Short Date Text'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_long_date_text'] = array(
+      'name' => t('Partial-Date-Field-Name: Long date Text'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+    $targets['pd_approximate'] = array(
+      'name' => t('Partial-Date-Field-Name: Approximate'),
+      'description' => t('Description of what my custom node field does.'),
+      'callback' => 'my_module_set_target',
+      // Specify both summary_callback and form_callback to add a per mapping
+      // configuration form.
+      'summary_callback' => 'my_module_summary_callback',
+      'form_callback' => 'my_module_form_callback',
+    );
+  }
+}
+
+function partial_date_feeds_plugins() {
+  $info = array();
+  $info['MyParser'] = array(
+    'name' => 'ODK parser',
+    'description' => 'Parse my stuff.',
+    'help' => 'More verbose description here. Will be displayed on parser selection menu.',
+    'handler' => array(
+      'parent' => 'FeedsParser', // Being directly or indirectly an extension of FeedsParser makes a plugin a parser plugin.
+      'class' => 'MyParser',
+      'file' => 'MyParser.inc',
+      'path' => drupal_get_path('module', 'my_module'),
+    ),
+  );
+  $info['MyProcessor'] = array(
+    'name' => 'Partial Dates Parser',
+    'description' => 'Partial Date process.',
+    'help' => 'More verbose description here. Will be displayed on processor selection menu.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'PartialDateCSVProcessor',
+      'file' => 'partial_date_feeds_processor.inc',
+      'path' => drupal_get_path('module', 'partial_date') ."/plugins",
+    ),
+  );
+  return $info;
+}
+
+function partial_date_ctools_plugin_api($owner, $api) {
+  if ($owner == 'feeds' && $api == 'plugins') {
+    return array('version' => 1);
+  }
 }
