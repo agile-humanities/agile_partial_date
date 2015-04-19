@@ -2067,33 +2067,17 @@ function partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $bu
 
 function partial_date_feeds_plugins() {
   $info = array();
-  $info['MyParser'] = array(
-    'name' => 'ODK parser',
-    'description' => 'Parse my stuff.',
-    'help' => 'More verbose description here. Will be displayed on parser selection menu.',
+  $info['partial_date_parser'] = array(
+    'name' => 'Partial Date Parser',
+    'description' => 'Parses partial date.',
+    'help' => 'Allows importation of exported nodes with Partial Date widget enabled.',
     'handler' => array(
-      'parent' => 'FeedsParser', // Being directly or indirectly an extension of FeedsParser makes a plugin a parser plugin.
-      'class' => 'MyParser',
-      'file' => 'MyParser.inc',
-      'path' => drupal_get_path('module', 'my_module'),
-    ),
-  );
-  $info['MyProcessor'] = array(
-    'name' => 'Partial Dates Parser',
-    'description' => 'Partial Date process.',
-    'help' => 'More verbose description here. Will be displayed on processor selection menu.',
-    'handler' => array(
-      'parent' => 'FeedsProcessor',
-      'class' => 'PartialDateCSVProcessor',
-      'file' => 'partial_date_feeds_processor.inc',
+      'parent' => 'FeedsCSVParser',
+      'class' => 'PartialDateCSVParser',
+      'file' => 'partial_date_feeds_parser.inc',
       'path' => drupal_get_path('module', 'partial_date') ."/plugins",
     ),
+
   );
   return $info;
-}
-
-function partial_date_ctools_plugin_api($owner, $api) {
-  if ($owner == 'feeds' && $api == 'plugins') {
-    return array('version' => 1);
-  }
 }

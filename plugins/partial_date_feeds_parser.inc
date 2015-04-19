@@ -8,7 +8,7 @@
 /**
  * Parses a given file as a CSV file.
  */
-class PartialDateCSVProcessor extends FeedsProcessor {
+class PartialDateCSVParser extends FeedsCSVParser {
 
   /**
    * Implements FeedsParser::parse().
@@ -92,12 +92,7 @@ class PartialDateCSVProcessor extends FeedsProcessor {
   public function getMappingSources() {
     return FALSE;
   }
-  /**
-   * Get mappings.
-   */
-  public function getMappings() {
-    return isset($this->config['mappings']) ? $this->config['mappings'] : array();
-  }
+
   /**
    * Override parent::getSourceElement() to use only lower keys.
    */
