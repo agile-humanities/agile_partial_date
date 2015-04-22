@@ -42,27 +42,28 @@ function _partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $b
       );
 
       // TODO: only show the ones that are configured for this field.
-      foreach (array('from', 'to') as $range_end) {
-        foreach (array(
-                   'year',
-                   'year_estimate',
-                   'month',
-                   'month_estimate',
-                   'day',
-                   'day_estimate',
-                   'hour',
-                   'hour_estimate',
-                   'minute',
-                   'minute_estimate',
-                   'second',
-                   'second_estimate',
-                   'timezone'
-                 ) as $qualifier) {
-          $targets[$name . ':' . $range_end . ':' . $qualifier] = array(
-            'name' => t($name . ": $range_end : $qualifier"),
-            'description' => t('Partial date element.'),
-            'callback' => 'partial_date_feeds_set_target',
-          );
+      $has_range = strpos($info['type'], '_range');
+      $range_ends = $has_range ? array('from', 'to') : array('from');
+      foreach ($range_ends as $range_end) {
+        foreach (array('year', 'month', 'day', 'hour', 'minute', 'second', 'timezone') as $qualifier) {
+
+          // Check if the field instance contains this subfield.
+          if ($instance['widget']['settings']['granularity'][$range_end][$qualifier]) {
+            $targets[$name . ':' . $range_end . ':' . $qualifier] = array(
+              'name' => t($name . ": $range_end : $qualifier"),
+              'description' => t('Partial date element.'),
+              'callback' => 'partial_date_feeds_set_target',
+            );
+          }
+          if ($qualifier != 'timezone') {
+            if ($instance['widget']['settings']['estimates'][$range_end][$qualifier]) {
+              $targets[$name . ':' . $range_end . ':' . $qualifier . '_estimate'] = array(
+                'name' => t($name . ": $range_end : $qualifier Estimate"),
+                'description' => t('Partial date element.'),
+                'callback' => 'partial_date_feeds_set_target',
+              );
+            }
+          }
         }
       }
     }
