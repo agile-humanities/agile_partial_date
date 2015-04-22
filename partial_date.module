@@ -1796,65 +1796,8 @@ function partial_date_day_of_week($year, $month, $day) {
 }
 
 /**
- * Implements hook_feeds_plugins().
+ * Implements hook_feeds_processor_targets_alter().
  */
-function hook_feeds_plugins() {
-  $info = array();
-  $info['MyFetcher'] = array(
-    'name' => 'My Fetcher',
-    'description' => 'Fetches my stuff.',
-    'help' => 'More verbose description here. Will be displayed on fetcher selection menu.',
-    'handler' => array(
-      'parent' => 'FeedsFetcher',
-      'class' => 'MyFetcher',
-      'file' => 'MyFetcher.inc',
-      'path' => drupal_get_path('module', 'my_module'), // Feeds will look for MyFetcher.inc in the my_module directory.
-    ),
-  );
-  $info['MyParser'] = array(
-    'name' => 'ODK parser',
-    'description' => 'Parse my stuff.',
-    'help' => 'More verbose description here. Will be displayed on parser selection menu.',
-    'handler' => array(
-      'parent' => 'FeedsParser', // Being directly or indirectly an extension of FeedsParser makes a plugin a parser plugin.
-      'class' => 'MyParser',
-      'file' => 'MyParser.inc',
-      'path' => drupal_get_path('module', 'my_module'),
-    ),
-  );
-  $info['MyProcessor'] = array(
-    'name' => 'ODK parser',
-    'description' => 'Process my stuff.',
-    'help' => 'More verbose description here. Will be displayed on processor selection menu.',
-    'handler' => array(
-      'parent' => 'FeedsProcessor',
-      'class' => 'MyProcessor',
-      'file' => 'MyProcessor.inc',
-      'path' => drupal_get_path('module', 'my_module'),
-    ),
-  );
-  return $info;
-}
-
-
-
-function partial_date_feeds_plugins() {
-  $info = array();
-  $info['partial_date_parser'] = array(
-    'name' => 'Partial Date Parser',
-    'description' => 'Parses partial date.',
-    'help' => 'Allows importation of exported nodes with Partial Date widget enabled.',
-    'handler' => array(
-      'parent' => 'FeedsCSVParser',
-      'class' => 'PartialDateCSVParser',
-      'file' => 'partial_date_feeds_parser.inc',
-      'path' => drupal_get_path('module', 'partial_date') ."/plugins",
-    ),
-
-  );
-  return $info;
-}
-
 function partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   module_load_include('inc', 'partial_date', 'mappings/partial_date');
   _partial_date_feeds_processor_targets_alter($targets, $entity_type, $bundle_name);
