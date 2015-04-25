@@ -12,7 +12,7 @@ function _partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $b
   $field_info = field_info_instances($entity_type, $bundle_name); // ROSIE: is list of instances for this bundle keyed by machine name.
   foreach ($field_info as $name => $instance) {
     $info = field_info_field($name); // this gets the actual field info that includes the type.
-    if ($info['type'] == 'partial_date') {
+    if (strpos($info['type'],'partial_date')  === 0 ) {
       $targets[$name . ':txt_short'] = array(
         'name' => t($name . ': Short Text Description'),
         'description' => t('Description of what my custom node field does.'),
@@ -100,9 +100,40 @@ function partial_date_feeds_set_target($source, $entity, $target, $feed_element)
 
       case 'from':
       case 'to':
+        $f = partial_date_resolve_value($f, $entity, $field_name, $sub_field, $sub_element);
         $entity->{$field_name}[$entity->language][$delta][$sub_field][$sub_element] = $f;
         break;
     }
   }
   return;
+}
+
+/**
+ * Cleans the given value so it can be entered into a partial date field.
+ *
+ * @param $value
+ *   The raw value from the importer
+ * @param $field_name
+ *   The name of the field the value will be imported into
+ * @param $sub_element
+ *   The sub-element of the partial date field - may take a value such as 'year' or 'year_estimate'.
+ * @return mixed|string
+ */
+function partial_date_resolve_value($value, $field_name, $sub_element) {
+  // Remove leading zeroes from numeric values.
+  if (is_numeric($value)) {
+    $value = ltrim($value, '0');
+  }
+
+  $info = field_info_field($field_name);
+  // Resolve the estimate labels into their values.
+  $estimate = strpos($sub_element, '_estimate');
+  if ($estimate !== FALSE){
+    $sub_element = substr($sub_element, 0, $estimate);
+    $key = array_search($value, $info['settings']['estimates'][$sub_element]);
+    if ($key) {
+      $value = $key;
+    }
+  }
+  return $value;
 }
