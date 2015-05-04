@@ -100,7 +100,7 @@ function partial_date_feeds_set_target($source, $entity, $target, $feed_element)
 
       case 'from':
       case 'to':
-        $f = partial_date_resolve_value($f, $entity, $field_name, $sub_field, $sub_element);
+        $f = partial_date_resolve_value($f, $field_name, $sub_element);
         $entity->{$field_name}[$entity->language][$delta][$sub_field][$sub_element] = $f;
         break;
     }
