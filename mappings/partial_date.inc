@@ -13,40 +13,31 @@ function _partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $b
   foreach ($field_info as $name => $instance) {
     $info = field_info_field($name); // this gets the actual field info that includes the type.
     if (strpos($info['type'],'partial_date')  === 0 ) {
-      $targets[$name . ':txt_short'] = array(
-        'name' => t($name . ': Short Text Description'),
-        'description' => t('Description of what my custom node field does.'),
-        'callback' => 'partial_date_feeds_set_target',
-        // Specify both summary_callback and form_callback to add a per mapping
-        // configuration form.
-        //'summary_callback' => 'my_module_summary_callback',
-        //'form_callback' => 'my_module_form_callback',
-      );
-      $targets[$name . ':txt_long'] = array(
-        'name' => t($name . ': Long Text Description'),
-        'description' => t('Description of what my custom node field does.'),
-        'callback' => 'partial_date_feeds_set_target',
-        // Specify both summary_callback and form_callback to add a per mapping
-        // configuration form.
-        //'summary_callback' => 'my_module_summary_callback',
-        //'form_callback' => 'my_module_form_callback',
-      );
-      $targets[$name . ':check_approximate'] = array(
-        'name' => t($name . ': Approximate (bool)'),
-        'description' => t('Description of what my custom node field does.'),
-        'callback' => 'partial_date_feeds_set_target',
-        // Specify both summary_callback and form_callback to add a per mapping
-        // configuration form.
-        //'summary_callback' => 'my_module_summary_callback',
-        //'form_callback' => 'my_module_form_callback',
-      );
-
-      // TODO: only show the ones that are configured for this field.
+      if ($instance['widget']['settings']['theme_overrides']['txt_short']) {
+        $targets[$name . ':txt_short'] = array(
+          'name' => t($name . ': Short Text Description'),
+          'description' => t('Description of what my custom node field does.'),
+          'callback' => 'partial_date_feeds_set_target',
+        );
+      }
+      if ($instance['widget']['settings']['theme_overrides']['txt_long']) {
+        $targets[$name . ':txt_long'] = array(
+          'name' => t($name . ': Long Text Description'),
+          'description' => t('Description of what my custom node field does.'),
+          'callback' => 'partial_date_feeds_set_target',
+        );
+      }
+      if ($instance['widget']['settings']['theme_overrides']['check_approximate']) {
+        $targets[$name . ':check_approximate'] = array(
+          'name' => t($name . ': Approximate (bool)'),
+          'description' => t('Description of what my custom node field does.'),
+          'callback' => 'partial_date_feeds_set_target',
+        );
+      }
       $has_range = strpos($info['type'], '_range');
       $range_ends = $has_range ? array('from', 'to') : array('from');
       foreach ($range_ends as $range_end) {
         foreach (array('year', 'month', 'day', 'hour', 'minute', 'second', 'timezone') as $qualifier) {
-
           // Check if the field instance contains this subfield.
           if ($instance['widget']['settings']['granularity'][$range_end][$qualifier]) {
             $targets[$name . ':' . $range_end . ':' . $qualifier] = array(
@@ -58,7 +49,7 @@ function _partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $b
           if ($qualifier != 'timezone') {
             if ($instance['widget']['settings']['estimates'][$range_end][$qualifier]) {
               $targets[$name . ':' . $range_end . ':' . $qualifier . '_estimate'] = array(
-                'name' => t($name . ": $range_end : $qualifier Estimate"),
+                'name' => t($name . ": $range_end : $qualifier - estimate"),
                 'description' => t('Partial date element.'),
                 'callback' => 'partial_date_feeds_set_target',
               );
