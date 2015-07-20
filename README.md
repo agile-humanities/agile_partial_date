@@ -1,8 +1,8 @@
-= Partial Date - Feeds Compatible = 
+# Partial Date - Feeds Compatible
 
 This patch allows you to use the Feeds module to import components of a partial date field.
 
-== Installation ==
+## Installation
 To install, either use this module in place of partial_date, or use the included patch 
 to patch your partial date module. Install and enable Feeds.
 
