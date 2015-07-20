@@ -1,5 +1,8 @@
+= Partial Date - Feeds Compatible = 
+
 This patch allows you to use the Feeds module to import components of a partial date field.
 
+== Installation ==
 To install, either use this module in place of partial_date, or use the included patch 
 to patch your partial date module. Install and enable Feeds.
 
@@ -42,7 +45,3 @@ Not all of the above components will be available in the list.  "To" components 
 A Partial date field can be set up with customized labels for range estimates. For example, the years 1500 to 1599 may be called "16th century". The feeds importer checks for labels, so values that can be imported (e.g. the column in your CSV) may be "1500|1599" or "16th century" to the same effect. Please note that they are case sensitive. If the label is not recognized the value will not be imported.
 
 To import months, please use the numeric value, i.e. either "02" or "2" for February.
-
-
-
-         
