@@ -3,7 +3,7 @@ This patch allows you to use the Feeds module to import components of a partial 
 To install, either use this module in place of partial_date, or use the included patch 
 to patch your partial date module. Install and enable Feeds.
 
-When configuring a Feeds importer for a node (see footnote 1) that contains a partial date, the Mappings section will contain Partial Date components that you can select as targets. These can include the following:
+When configuring a Feeds importer for an entity that contains a partial date, the Mappings section will contain Partial Date components that you can select as targets. These can include the following:
 
 * my partial date field: Approximate (bool)
 * my partial date field: Long text description
@@ -43,9 +43,6 @@ A Partial date field can be set up with customized labels for range estimates. F
 
 To import months, please use the numeric value, i.e. either "02" or "2" for February.
 
-
-         
-1: It has not been tested for other entity types but should work.
 
 
          

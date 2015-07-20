@@ -4,33 +4,32 @@
  * Implements hook_feeds_processor_targets_alter().
  *
  * @see FeedsNodeProcessor::getMappingTargets().
- *
- * @todo Only provides "end date" target if field allows it.
  */
 function _partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name)
 {
-  $field_info = field_info_instances($entity_type, $bundle_name); // ROSIE: is list of instances for this bundle keyed by machine name.
+  $field_info = field_info_instances($entity_type, $bundle_name);
   foreach ($field_info as $name => $instance) {
-    $info = field_info_field($name); // this gets the actual field info that includes the type.
+    $label = $instance['label'];
+    $info = field_info_field($name);
     if (strpos($info['type'],'partial_date')  === 0 ) {
       if ($instance['widget']['settings']['theme_overrides']['txt_short']) {
         $targets[$name . ':txt_short'] = array(
-          'name' => t($name . ': Short Text Description'),
-          'description' => t('Description of what my custom node field does.'),
+          'name' => t($label . ': Short Text Description'),
+          'description' => t("Short text description of the {$instance['label']} field."),
           'callback' => 'partial_date_feeds_set_target',
         );
       }
       if ($instance['widget']['settings']['theme_overrides']['txt_long']) {
         $targets[$name . ':txt_long'] = array(
-          'name' => t($name . ': Long Text Description'),
-          'description' => t('Description of what my custom node field does.'),
+          'name' => t($label . ': Long Text Description'),
+          'description' => t("Long text description of the {$instance['label']} field."),
           'callback' => 'partial_date_feeds_set_target',
         );
       }
       if ($instance['widget']['settings']['theme_overrides']['check_approximate']) {
         $targets[$name . ':check_approximate'] = array(
-          'name' => t($name . ': Approximate (bool)'),
-          'description' => t('Description of what my custom node field does.'),
+          'name' => t($label . ': Approximate (bool)'),
+          'description' => t("Boolean for whether the {$instance['label']} field is an approximate date."),
           'callback' => 'partial_date_feeds_set_target',
         );
       }
@@ -40,17 +39,18 @@ function _partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $b
         foreach (array('year', 'month', 'day', 'hour', 'minute', 'second', 'timezone') as $qualifier) {
           // Check if the field instance contains this subfield.
           if ($instance['widget']['settings']['granularity'][$range_end][$qualifier]) {
+            $range_info = $has_range ? "\"$range_end\" element of the " : '';
             $targets[$name . ':' . $range_end . ':' . $qualifier] = array(
-              'name' => t($name . ": $range_end : $qualifier"),
-              'description' => t('Partial date element.'),
+              'name' => t($label . ": $range_end : $qualifier"),
+              'description' => t("The $qualifier for the $range_info$label field."),
               'callback' => 'partial_date_feeds_set_target',
             );
           }
           if ($qualifier != 'timezone') {
             if ($instance['widget']['settings']['estimates'][$range_end][$qualifier]) {
               $targets[$name . ':' . $range_end . ':' . $qualifier . '_estimate'] = array(
-                'name' => t($name . ": $range_end : $qualifier - estimate"),
-                'description' => t('Partial date element.'),
+                'name' => t($label . ": $range_end : $qualifier - estimate"),
+                'description' => t("The $qualifier estimate for the $range_info$label field."),
                 'callback' => 'partial_date_feeds_set_target',
               );
             }
