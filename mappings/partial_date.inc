@@ -75,7 +75,7 @@ function _partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $b
  */
 function partial_date_feeds_set_target($source, $entity, $target, $feed_element)
 {
-  list($field_name, $sub_field, $sub_element) = explode(':', $target, 3);
+  list($field_name, $sub_field, $sub_element) = array_pad(explode(':', $target, 3), 3, NULL);
   if (!is_array($feed_element)) {
     $feed_element = array($feed_element);
   }
@@ -94,6 +94,9 @@ function partial_date_feeds_set_target($source, $entity, $target, $feed_element)
         $f = partial_date_resolve_value($f, $field_name, $sub_element);
         $entity->{$field_name}[$entity->language][$delta][$sub_field][$sub_element] = $f;
         break;
+    }
+    if (!isset($entity->{$field_name}[$entity->language][$delta]['from'])) {
+      $entity->{$field_name}[$entity->language][$delta]['from'] = array();
     }
   }
   return;
