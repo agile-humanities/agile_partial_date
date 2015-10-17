@@ -80,23 +80,24 @@ function partial_date_feeds_set_target($source, $entity, $target, $feed_element)
     $feed_element = array($feed_element);
   }
   $delta = 0;
+  $lang = isset($entity->language) ? $entity->language : 'und';
   foreach ($feed_element as $f) {
     switch ($sub_field) {
       case 'check_approximate':
       case 'txt_short':
       case 'txt_long':
-        $entity->{$field_name}[$entity->language][$delta][$sub_field] = $f;
+        $entity->{$field_name}[$lang][$delta][$sub_field] = $f;
         $a = 1;
         break;
 
       case 'from':
       case 'to':
         $f = partial_date_resolve_value($f, $field_name, $sub_element);
-        $entity->{$field_name}[$entity->language][$delta][$sub_field][$sub_element] = $f;
+        $entity->{$field_name}[$lang][$delta][$sub_field][$sub_element] = $f;
         break;
     }
-    if (!isset($entity->{$field_name}[$entity->language][$delta]['from'])) {
-      $entity->{$field_name}[$entity->language][$delta]['from'] = array();
+    if (!isset($entity->{$field_name}[$lang][$delta]['from'])) {
+      $entity->{$field_name}[$lang][$delta]['from'] = array();
     }
   }
   return;
