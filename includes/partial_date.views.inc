@@ -18,7 +18,7 @@ function partial_date_field_views_data($field) {
         if (!isset($field_data['sort'])) {
           $data[$table_name][$field_name]['sort'] = $data[$table_name][$field_name . '_timestamp']['sort'];
         }
-        $data[$table_name][$field_name]['filter']['handler'] = 'views_handler_filter_field_partial_date_year';
+        $data[$table_name][$field_name]['filter']['handler'] = 'partial_date_views_filter_handler_simple';
       }
     }
   }
