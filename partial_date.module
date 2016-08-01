@@ -1811,3 +1811,40 @@ function partial_date_feeds_processor_targets_alter(&$targets, $entity_type, $bu
   module_load_include('inc', 'partial_date', 'mappings/partial_date');
   _partial_date_feeds_processor_targets_alter($targets, $entity_type, $bundle_name);
 }
+
+/**
+ * Custom validation function to ensure that the partial date picker has been
+ * filled from left to right with no gaps.
+ */
+function partial_date_views_select_validate(&$form, &$form_state) {
+  // If there are no values just return.
+  if (empty($form['value']) && empty($form['min'])) {
+    return;
+  }
+  $granularity = (!empty($form['min']['#date_format'])) ? date_format_order($form['min']['#date_format']) : date_format_order($form['value']['#date_format']);
+  $filled = array();
+  $value = drupal_array_get_nested_value($form_state['input'], $form['#parents']);
+  foreach ($granularity as $part) {
+    if (isset($value['value']) && is_numeric($value['value'][$part])) {
+      $filled[] = $part;
+    }
+  }
+  if (!empty($filled) && count($filled) != count($granularity)) {
+    $unfilled = array_diff($granularity, $filled);
+    $unfilled_indexes = partial_date_get_indices($unfilled, $granularity);
+    $filled_indexes = partial_date_get_indices($filled, $granularity);
+    if (max($filled_indexes) > min($unfilled_indexes)) {
+      form_error($form['value']['month'], t('Gaps in the date filter are not allowed.'), $form_state);
+    }
+  }
+}
+
+function partial_date_get_indices ($selected, $valid_keys) {
+  $to_return = [];
+  foreach ($valid_keys as $key => $value) {
+    if (in_array($value, $selected)) {
+      $to_return[] = $key;
+    }
+  }
+  return $to_return;
+}
