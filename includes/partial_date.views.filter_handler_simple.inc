@@ -1,14 +1,41 @@
 <?php
 
 class partial_date_views_filter_handler_simple extends date_views_filter_handler_simple {
-  
+
   function init(&$view, &$options) {
-    parent::init($view, $options);
+    views_handler_filter_date::init($view, $options);
+    module_load_include('inc', 'date_api', 'date_api_sql');
+    $this->date_handler = new date_sql_handler(DATE_UNIX);
+    if (!empty($this->definition['field_name'])) {
+      $field = field_info_field($this->definition['field_name']);
+      if (!empty($field) && !empty($field['type'])) {
+        $this->date_handler->date_type = $field['type'];
+      }
+      // $field['settings']['tz_handling'] does not need to be set; this
+      // is why we are overwriting the parent's init().
+      $this->date_handler->db_timezone = date_get_timezone_db('utc'); //FIXME hardcoded to UTC
+      $this->date_handler->local_timezone = date_get_timezone('utc');
+    }
+    $this->form_submitted = FALSE;
+    $this->date_handler->granularity = isset($options['granularity']) ? $options['granularity'] : 'day';
+    $this->format = $this->date_handler->views_formats($this->options['granularity'], 'sql');
+
+    // Identify the base table for this field.
+    // It will be used to call for the right query field options.
+    $this->base_table = $this->table;
+  }
+
+  /**
+   * Add a new widget to do partial date math.
+   */
+  function widget_options() {
+    $options = parent::widget_options();
+    $options['partial_date_select'] = t('Partial Select');
+    return $options;
   }
 
   function op_contains($field) {
 
-    /** Not sure what this part does or why we need it!! -RL */
     // Add the delta field to the view so we can later find the value that matched our query.
     list($table_name, $field_name) = explode('.', $field);
     if (!empty($this->options['add_delta']) && (substr($field_name, -6) == '_value' || substr($field_name, -7) == '_value2')) {
@@ -16,90 +43,30 @@ class partial_date_views_filter_handler_simple extends date_views_filter_handler
     }
 
     $value = $this->get_filter_value('value', $this->value['value']);
-    $comp_date = new DateObject($value, date_default_timezone(), $this->format);
-    $value = $comp_date->format('YmdHis');
-    $value = floatval($value);
-    //$all_fields = date_views_views_fetch_fields($table_name, 'filter');
-    //$fields = date_views_fields($this->base_table, TRUE);
-    //$fields = $fields['name'];
-//    $field_min = $this->date_handler->sql_field($from, NULL, $comp_date);
-//    $field_min = $this->date_handler->sql_format('YmdHis', $field_min);
-//    $field_max = $this->date_handler->sql_field($to, NULL, $comp_date);
-//    $field_max = $this->date_handler->sql_format('YmdHis', $field_max);
+    $value_to = array();
+    foreach ($value as $key => $val) {
+      $value_to[$key . '_to'] = $val;
+    }
+    $comp_partial_date = partial_date_float(partial_date_field_populate_components($value));
+    $comp_partial_date_to = partial_date_float(partial_date_field_populate_components($value_to, 0));
+
     $field_min = $field;
     $field_max = $field . '_to';
     $placeholder_min = $this->placeholder();
     $placeholder_max = $this->placeholder();
     $group = !empty($this->options['date_group']) ? $this->options['date_group'] : $this->options['group'];
-    $this->query->add_where_expression($group, "$field_max >= $placeholder_min AND $field_min <= $placeholder_max", array($placeholder_min => $value, $placeholder_max => $value));
-  }
-  /**
-   * Helper function to see if we need to swap in the default value.
-   *
-   * Views exposed filters treat everything as submitted, so if it's an empty value we have to
-   * see if anything actually was submitted. If nothing has really been submitted, we need
-   * to swap in our default value logic.
-   */
-  function get_filter_value($prefix, $input) {
-    // All our date widgets provide datetime values but we use ISO in our SQL
-    // for consistency between the way filters and arguments work (arguments
-    // cannot contain spaces).
-
-    // Alan: Possibly we need to change code here to point to another type of date-getter if the full date is not entered.
-    if (empty($input)) {
-      if (empty($this->options['exposed'])) {
-        return str_replace(' ', 'T', $this->date_default_value($prefix));
-      }
-      elseif (isset($this->options['expose']['identifier']) && !isset($_GET[$this->options['expose']['identifier']])) {
-        return str_replace(' ', 'T', $this->date_default_value($prefix));
-      }
-    }
-
-    return str_replace(' ', 'T', $input);
+    $this->query->add_where_expression($group, "$field_max >= $placeholder_min AND $field_min <= $placeholder_max", array($placeholder_min => $comp_partial_date, $placeholder_max => $comp_partial_date_to));
   }
 
   /**
-   * Add the selectors to the value form using the date handler.
+   * Override element_validate functions.
    */
   function value_form(&$form, &$form_state) {
-    // We use different values than the parent form, so we must
-    // construct our own form element.
-    $form['value'] = array();
-    $form['value']['#tree'] = TRUE;
-
-    // Below section copied from views_handler_filter_numeric.inc.
-    $which = 'all';
-    $source = '';
-    if (!empty($form['operator'])) {
-      $source = ($form['operator']['#type'] == 'radios') ? 'radio:options[operator]' : 'edit-options-operator';
-    }
-
-    $identifier = $this->options['expose']['identifier'];
-    if (!empty($form_state['exposed'])) {
-
-      if (empty($this->options['expose']['use_operator']) || empty($this->options['expose']['operator_id'])) {
-        // exposed and locked.
-        $which = in_array($this->operator, $this->operator_values(2)) ? 'minmax' : 'value';
-      }
-      else {
-        $source = 'edit-' . drupal_html_id($this->options['expose']['operator_id']);
-      }
-    }
-
-    if ($which == 'all' || $which == 'value') {
-      $form['value'] += $this->date_parts_form($form_state, 'value', $source, $which, $this->operator_values(1), $identifier, 'default_date');
-    }
-
-    if ($which == 'all' || $which == 'minmax') {
-      $form['value'] += $this->date_parts_form($form_state, 'min', $source, $which, $this->operator_values(2), $identifier, 'default_date');
-      $form['value'] += $this->date_parts_form($form_state, 'max', $source, $which, $this->operator_values(2), $identifier, 'default_to_date');
-    }
-
+    parent::value_form($form, $form_state);
     // Allow a partial date filter to be parsed if it's not complete.
-    if ($this->options['form_type'] == 'date_select') {
+    if ($this->options['form_type'] == 'partial_date_select') {
       $form['value']['#element_validate'] = array('partial_date_views_select_validate');
     }
-
   }
 
 }

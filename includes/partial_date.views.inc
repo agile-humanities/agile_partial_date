@@ -11,6 +11,8 @@ function partial_date_field_views_data($field) {
       if ($field_name == $field['field_name']) {
         if (!isset($field_data['filter'])) {
           $data[$table_name][$field_name]['filter'] = $data[$table_name][$field_name . '_timestamp']['filter'];
+          $data[$table_name][$field_name]['filter']['handler'] = 'partial_date_views_filter_handler_simple';
+
         }
         if (!isset($field_data['argument'])) {
           $data[$table_name][$field_name]['argument'] = $data[$table_name][$field_name . '_timestamp']['argument'];
@@ -18,7 +20,6 @@ function partial_date_field_views_data($field) {
         if (!isset($field_data['sort'])) {
           $data[$table_name][$field_name]['sort'] = $data[$table_name][$field_name . '_timestamp']['sort'];
         }
-        $data[$table_name][$field_name]['filter']['handler'] = 'partial_date_views_filter_handler_simple';
       }
     }
   }

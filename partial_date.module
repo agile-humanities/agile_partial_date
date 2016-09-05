@@ -858,7 +858,161 @@ function partial_date_element_info() {
     '#theme' => 'partial_date_element',
     '#theme_wrappers' => array('form_element'),
   );
+  $types['partial_date_select'] = array(
+    '#input' => TRUE,
+    '#tree' => TRUE,
+    '#process' => array('partial_date_select_element_process'),
+    '#theme_wrappers' => array('date_select'),
+    '#value_callback' => 'partial_date_select_element_value_callback',
+  );
   return $types;
+}
+
+function partial_date_select_element_process($element, &$form_state, $form) {
+  if (date_hidden_element($element)) {
+    return $element;
+  }
+
+  $date = NULL;
+  $granularity = date_format_order($element['#date_format']);
+
+  if (is_array($element['#default_value'])) {
+    $date = date_select_input_date($element, $element['#default_value']);
+  }
+  elseif (!empty($element['#default_value'])) {
+    $date = date_default_date($element);
+  }
+
+  $element['#tree'] = TRUE;
+  $element['#theme_wrappers'] = array('date_select');
+
+  $element += (array) date_parts_element($element, $date, $element['#date_format']);
+
+  // Store a hidden value for all date parts not in the current display.
+  $granularity = date_format_order($element['#date_format']);
+  $formats = array(
+    'year' => 'Y',
+    'month' => 'n',
+    'day' => 'j',
+    'hour' => 'H',
+    'minute' => 'i',
+    'second' => 's',
+  );
+  foreach (date_nongranularity($granularity) as $field) {
+    if ($field != 'timezone') {
+      $element[$field] = array(
+        '#type' => 'value',
+        '#value' => 0,
+      );
+    }
+  }
+  if (isset($element['#element_validate'])) {
+    array_push($element['#element_validate'], 'partial_date_select_validate');
+  }
+  else {
+    $element['#element_validate'] = array('partial_date_select_validate');
+  }
+  //unset($element['#element_validate']);
+
+  $context = array(
+    'form' => $form,
+  );
+  drupal_alter('date_select_process', $element, $form_state, $context);
+
+  return $element;
+}
+
+/**
+ * Element value callback for date_select element.
+ * COPIED ENTIRELY FROM date_select_element_value_callback.
+ */
+function partial_date_select_element_value_callback($element, $input = FALSE, &$form_state = array()) {
+  $return = array(
+    'year' => '',
+    'month' => '',
+    'day' => '',
+    'hour' => '',
+    'minute' => '',
+    'second' => '',
+  );
+  $date = NULL;
+  if ($input !== FALSE) {
+    $return = $input;
+    $date = partial_date_select_input_date($element, $input); // HIJACK VALUE
+  }
+  elseif (!empty($element['#default_value'])) {
+    $date = date_default_date($element); // FIXME
+  }
+  return $date;
+
+  // Fuck granularity.
+  /*
+  $granularity = date_format_order($element['#date_format']);
+  $formats = array(
+    'year' => 'Y',
+    'month' => 'n',
+    'day' => 'j',
+    'hour' => 'H',
+    'minute' => 'i',
+    'second' => 's',
+  );
+  foreach ($granularity as $field) {
+    if ($field != 'timezone') {
+      $return[$field] = date_is_date($date) ? $date->format($formats[$field]) : '';
+    }
+  }
+  return $return;
+  */
+}
+
+
+/**
+ * Validation function for date selector.
+ *
+ * When used as a Views widget, the validation step always gets triggered,
+ * even with no form submission. Before form submission $element['#value']
+ * contains a string, after submission it contains an array.
+ * COPIED ENTIRELY FROM date_select_validate.
+ */
+function partial_date_select_validate($element, &$form_state) {
+  if (date_hidden_element($element)) {
+    return;
+  }
+
+  if (is_string($element['#value'])) {
+    return;
+  }
+
+  $input_exists = NULL;
+  $input = drupal_array_get_nested_value($form_state['values'], $element['#parents'], $input_exists);
+
+  // Strip field labels out of the results.
+  foreach ($element['#value'] as $field => $field_value) {
+    if (substr($field_value, 0, 1) == '-') {
+      $input[$field] = '';
+    }
+  }
+
+  drupal_alter('partial_date_select_pre_validate', $element, $form_state, $input);
+
+  $label = !empty($element['#date_title']) ? $element['#date_title'] : (!empty($element['#title']) ? $element['#title'] : '');
+  if (isset($input['ampm'])) {
+    if ($input['ampm'] == 'pm' && $input['hour'] < 12) {
+      $input['hour'] += 12;
+    }
+    elseif ($input['ampm'] == 'am' && $input['hour'] == 12) {
+      $input['hour'] -= 12;
+    }
+  }
+  unset($input['ampm']);
+  $date = partial_date_select_input_date($element, $input);
+
+  // If the field has errors, display them.
+  $error_field = implode('][', $element['#parents']);
+  $entered = array_values(array_filter($input));
+// Check for errors??
+  $value = !empty($date) ? $date : NULL;
+  form_set_value($element, $value, $form_state);
 }
 
 /**
@@ -867,6 +1021,48 @@ function partial_date_element_info() {
 function partial_date_element_validate($element, $form_state) {
   module_load_include('admin.inc', 'partial_date');
   _partial_date_element_validate($element);
+}
+
+
+/**
+ * Helper function for creating a date object out of user input.
+ * COPIED DIRECTLY FROM date_api_elements.inc
+ */
+function partial_date_select_input_date($element, $input) {
+  module_load_include('admin.inc', 'partial_date');
+  // Was anything entered? If not, we have no date.
+  if (!is_array($input)) {
+    return NULL;
+  }
+  else {
+    $entered = array_values(array_filter($input));
+    if (empty($entered)) {
+      return NULL;
+    }
+  }
+  $granularity = date_format_order($element['#date_format']);
+  foreach ($input as $date_segment => $entered_value) {
+    if ($entered_value == "") {
+      if (($key = array_search($date_segment, $granularity)) != FALSE) {
+        unset($granularity[$key]);
+      }
+    }
+  }
+  if (isset($input['ampm'])) {
+    if ($input['ampm'] == 'pm' && $input['hour'] < 12) {
+      $input['hour'] += 12;
+    }
+    elseif ($input['ampm'] == 'am' && $input['hour'] == 12) {
+      $input['hour'] -= 12;
+    }
+  }
+  unset($input['ampm']);
+
+  // Make the input match the granularity.
+  foreach (date_nongranularity($granularity) as $part) {
+    unset($input[$part]);
+  }
+  return $input;
 }
 
 /**
