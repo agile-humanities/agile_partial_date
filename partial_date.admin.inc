@@ -235,7 +235,12 @@ function partial_date_field_populate_components($item, $start_date = TRUE) {
   );
 
   foreach (partial_date_components() as $key => $label) {
-    $value_key = $start_date ? $key : $key . '_to';
+    if (!$start_date && isset($item[$key . '_to'])) {
+      $value_key = $key . '_to';
+    }
+    else {
+      $value_key = $key;
+    }
     if (isset($item[$value_key]) && strlen($item[$value_key])) {
       $base[$key] = $item[$value_key];
     }
@@ -332,9 +337,7 @@ function _partial_date_field_presave($entity_type, $entity, $field, $instance, $
 
     // This is done after the estimates are expanded out.
     $items[$delta]['timestamp'] = partial_date_float(partial_date_field_populate_components($items[$delta]));
-    if ($has_range) {
-      $items[$delta]['timestamp_to'] = partial_date_float(partial_date_field_populate_components($items[$delta], 0));
-    }
+    $items[$delta]['timestamp_to'] = partial_date_float(partial_date_field_populate_components($items[$delta], 0));
 
     $items[$delta]['data'] = serialize($items[$delta]['data']);
   }

@@ -52,7 +52,7 @@ class partial_date_views_filter_handler_simple extends date_views_filter_handler
     $comp_partial_date_to = partial_date_float(partial_date_field_populate_components($value_to, 0));
 
     $field_min = $field;
-    $field_max = $field . '_to';
+    $field_max = in_array($field_name . '_to', $this->definition['additional fields']) ? $field . '_to' : $field;
     $placeholder_min = $this->placeholder();
     $placeholder_max = $this->placeholder();
     $group = !empty($this->options['date_group']) ? $this->options['date_group'] : $this->options['group'];

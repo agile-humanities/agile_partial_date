@@ -56,7 +56,9 @@ function partial_date_field_schema($field) {
     ),
   );
 
-  if ($has_range) {
+  // Always do this.
+ // if ($has_range) {
+  if (TRUE) {
     $schema['columns']['timestamp_to'] = array(
       'type' => 'float',
       'size' => 'big',
