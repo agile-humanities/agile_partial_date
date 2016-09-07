@@ -859,6 +859,13 @@ function partial_date_element_info() {
     '#theme_wrappers' => array('form_element'),
   );
   $types['partial_date_select'] = array(
+    '#date_timezone' => date_default_timezone(),
+    '#date_flexible' => 0,
+    '#date_format' => variable_get('date_format_short', 'm/d/Y - H:i'),
+    '#date_text_parts' => array(),
+    '#date_increment' => 1,
+    '#date_year_range' => '-3:+3',
+    '#date_label_position' => 'above',
     '#input' => TRUE,
     '#tree' => TRUE,
     '#process' => array('partial_date_select_element_process'),

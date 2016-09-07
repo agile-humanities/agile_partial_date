@@ -35,6 +35,7 @@ class partial_date_views_filter_handler_simple extends date_views_filter_handler
   }
 
   function op_contains($field) {
+    module_load_include('inc', 'partial_date', 'partial_date.admin');
 
     // Add the delta field to the view so we can later find the value that matched our query.
     list($table_name, $field_name) = explode('.', $field);
