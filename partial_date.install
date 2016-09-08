@@ -56,19 +56,18 @@ function partial_date_field_schema($field) {
     ),
   );
 
-  // Always do this.
- // if ($has_range) {
-  if (TRUE) {
-    $schema['columns']['timestamp_to'] = array(
-      'type' => 'float',
-      'size' => 'big',
-      'description' => 'The calculated timestamp for a date stored in UTC as a float for unlimited date range support.',
-      'not null' => TRUE,
-      'default' => 0,
-      'sortable' => TRUE,
-    );
-    $schema['indexes']['timestamp_to'] = array('timestamp_to');
-  }
+  // Include timestamp_to, even if the field is not a range.
+  // See partial_date_update_7101().
+  $schema['columns']['timestamp_to'] = array(
+    'type' => 'float',
+    'size' => 'big',
+    'description' => 'The calculated timestamp for a date stored in UTC as a float for unlimited date range support.',
+    'not null' => TRUE,
+    'default' => 0,
+    'sortable' => TRUE,
+  );
+  $schema['indexes']['timestamp_to'] = array('timestamp_to');
+
 
   foreach (partial_date_components() as $key => $label) {
     $description = 'The ' . $label . ' for ' . ($has_range ? 'the starting date component.' : 'a date.');
@@ -112,4 +111,79 @@ function partial_date_uninstall() {
   foreach (partial_date_format_types() as $type => $label) {
     variable_del('partial_date_format_' . $type);
   }
+}
+
+/**
+ * Returns all fields created on the system of type partial date.
+ */
+function partial_date_get_partial_date_fields($exclude_ranges = FALSE) {
+  $types = array_keys(partial_date_field_info()); // field types defined in mymodule
+  $fields = array();
+  foreach (field_info_fields() as $field) {
+    if (in_array($field['type'], $types)) {
+      if ($exclude_ranges && strpos($field['type'], '_range')){
+        continue;
+      }
+      $fields[] = $field;
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Create timestamp_to in partial date fields that are not ranges.
+ */
+function partial_date_update_7101() {
+  // Get partial date fields that are not ranges.
+  $fields = partial_date_get_partial_date_fields(TRUE);
+
+  foreach ($fields as $field) {
+    $table_prefixes = array(
+      _field_sql_storage_tablename($field),
+      _field_sql_storage_revision_tablename($field)
+    );
+    foreach ($table_prefixes as $table_prefix) {
+
+      $field_name = $field['field_name']; // eg 'field_dimensions' ;
+      $table = $table_prefix;
+
+      // Create new column for timestamp_to.
+      $new_column = $field_name . '_timestamp_to';
+      $spec = array(
+        'type' => 'float',
+        'size' => 'big',
+        'description' => 'The calculated timestamp for a date stored in UTC as a float for unlimited date range support.',
+        'not null' => TRUE,
+        'default' => 0,
+        'sortable' => TRUE,
+      );
+      $keys = array();
+      $keys['indexes']['timestamp_to'] = array('timestamp_to');
+      db_add_field($table, $new_column, $spec, $keys);
+
+      $field_def = field_info_field($field_name);
+      // Update all existing partial date entries to have timestamp_to.
+      $query = db_select($table, 'd')
+        ->fields('d');
+      $results = $query->execute();
+
+      foreach ($results as $row) {
+        $item = array();
+        foreach ($field_def['columns'] as $column => $attributes) {
+          $column_name = _field_sql_storage_columnname($field_name, $column);
+          $item[$column] = $row->$column_name;
+        }
+        $item['data'] = unserialize($item['data']);
+        $timestamp_to = partial_date_float(partial_date_field_populate_components($item, 0));
+        $updated = db_update($table)
+          ->fields(array(
+            $field_name . '_timestamp_to' => $timestamp_to
+          ))
+          ->condition('revision_id', $row->revision_id)
+          ->execute();
+
+      }
+    }
+  }
+  return t('Converted single partial dates to have timestamp_to.');
 }
