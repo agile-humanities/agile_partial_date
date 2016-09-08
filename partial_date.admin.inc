@@ -312,7 +312,7 @@ function _partial_date_field_presave($entity_type, $entity, $field, $instance, $
           $items[$delta][$key] = $from;
           $items[$delta]['data'][$key . '_estimate_from_used'] = 1;
         }
-        if ($has_range && (!isset($item['to'][$key]) || !strlen($item['to'][$key]))) {
+        if (!isset($item['to'][$key]) || !strlen($item['to'][$key])) {
           $items[$delta][$key . '_to'] = $to;
           $items[$delta]['data'][$key . '_estimate_to_used'] = 1;
         }
