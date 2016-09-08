@@ -158,7 +158,7 @@ function partial_date_update_7101() {
         'sortable' => TRUE,
       );
       $keys = array();
-      $keys['indexes']['timestamp_to'] = array('timestamp_to');
+      $keys['indexes']['timestamp_to'] = array($field_name . '_timestamp_to');
       db_add_field($table, $new_column, $spec, $keys);
 
       $field_def = field_info_field($field_name);
