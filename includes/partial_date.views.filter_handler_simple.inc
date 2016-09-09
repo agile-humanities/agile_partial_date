@@ -34,6 +34,9 @@ class partial_date_views_filter_handler_simple extends date_views_filter_handler
     return $options;
   }
 
+  /**
+   * Override op_contains for partial date fields.
+   */
   function op_contains($field) {
     module_load_include('inc', 'partial_date', 'partial_date.admin');
 

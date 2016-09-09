@@ -188,6 +188,9 @@ function partial_date_update_7101() {
   return t('Converted single partial dates to have timestamp_to.');
 }
 
+/**
+ * Fix timestamp_to when estimates are used.
+ */
 function partial_date_update_7102() {
   // Get partial date fields that are not ranges.
   $fields = partial_date_get_partial_date_fields(TRUE);

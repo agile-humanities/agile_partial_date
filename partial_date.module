@@ -2051,4 +2051,3 @@ function partial_date_get_indices ($selected, $valid_keys) {
   }
   return $to_return;
 }
-
