@@ -187,3 +187,56 @@ function partial_date_update_7101() {
   }
   return t('Converted single partial dates to have timestamp_to.');
 }
+
+function partial_date_update_7102() {
+  // Get partial date fields that are not ranges.
+  $fields = partial_date_get_partial_date_fields(TRUE);
+
+  foreach ($fields as $field) {
+    $table_prefixes = array(
+      _field_sql_storage_tablename($field),
+      _field_sql_storage_revision_tablename($field)
+    );
+    foreach ($table_prefixes as $table_prefix) {
+
+      $field_name = $field['field_name']; // eg 'field_dimensions' ;
+      $table = $table_prefix;
+
+      // Update all existing estimates.
+      $query = db_select($table, 'd')
+        ->fields('d');
+      $results = $query->execute();
+      $field_def = field_info_field($field_name);
+
+      foreach ($results as $row) {
+        $item = array();
+        foreach ($field_def['columns'] as $column => $attributes) {
+          $column_name = _field_sql_storage_columnname($field_name, $column);
+          $item[$column] = $row->$column_name;
+        }
+        $item['data'] = unserialize($item['data']);
+        // Recreate the estimates as _to dates.
+        foreach (partial_date_components(array('timezone')) as $key => $label) {
+          $from = NULL;
+          $to = NULL;
+          if (!empty($item['data'][$key . '_estimate'])) {
+            list ($from, $to) = explode('|', $item['data'][$key . '_estimate']);
+            if (!isset($item['to'][$key]) || !strlen($item['to'][$key])) {
+              $item[$key . '_to'] = $to;
+            }
+          }
+        }
+
+        $timestamp_to = partial_date_float(partial_date_field_populate_components($item, 0));
+        $updated = db_update($table)
+          ->fields(array(
+            $field_name . '_timestamp_to' => $timestamp_to
+          ))
+          ->condition('revision_id', $row->revision_id)
+          ->execute();
+
+      }
+    }
+  }
+}
+
